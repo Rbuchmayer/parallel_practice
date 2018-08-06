@@ -19,12 +19,28 @@ public class FilterEmpty {
     }
 
     public static int[] mapToBitSet(String[] arr) {
-        throw new NotYetImplementedException();
+        int[] bits = new int[arr.length];
+        for(int i = 0; i < arr.length; i++) {
+        	if(arr[i].length() > 0) {
+        		bits[i] = 1;
+        	}
+        }
+        return ParallelPrefixSum.parallelPrefixSum(bits);
     }
 
     
     public static int[] mapToOutput(String[] input, int[] bitsum) {
-        throw new NotYetImplementedException();
+    	int last = bitsum[bitsum.length - 1];
+        int[] output = new int[last];1111
+        int j = 0;
+        int sum = 0;
+        for(int i = 0; i < input.length; i++) {
+        	if(bitsum[i] != sum) {
+        		output[j] = input[i].length();
+        		sum += bitsum[i];
+        	}
+        }
+        return output;
     }
 
     private static void usage() {
