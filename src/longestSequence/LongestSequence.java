@@ -60,63 +60,8 @@ public class LongestSequence {
 					left.fork();
 					SequenceRange rightAns = right.compute();
 					SequenceRange leftAns = left.join();
-					int longest = Math.max(rightAns.longestRange, leftAns.longestRange);
-					if (leftAns.matchingOnRight + rightAns.matchingOnLeft > longest) {
-						longest = leftAns.matchingOnRight + rightAns.matchingOnLeft;
-					}
 
-					if (leftAns.sequenceLength == 1 && rightAns.sequenceLength == 1) {
-						SequenceRange s = new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
-								rightAns.matchingOnRight + leftAns.matchingOnRight, longest,
-								leftAns.sequenceLength + rightAns.sequenceLength);
-						return s;
-					}
-					if (leftAns.sequenceLength == 1 && rightAns.sequenceLength != 1) {
-						int x = 0;
-						if (leftAns.longestRange == 1 && rightAns.sequenceLength == rightAns.longestRange) {
-							x = 1;
-						}
-						SequenceRange s = new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
-								rightAns.matchingOnRight + x, longest,
-								leftAns.sequenceLength + rightAns.sequenceLength);
-						return s;
-					}
-					if (leftAns.sequenceLength != 1 && rightAns.sequenceLength == 1) {
-						int x = 0;
-						if (rightAns.longestRange == 1 && leftAns.sequenceLength == leftAns.longestRange) {
-							x = 1;
-						}
-						SequenceRange s = new SequenceRange(leftAns.matchingOnLeft + x,
-								rightAns.matchingOnRight + leftAns.matchingOnRight, longest,
-								leftAns.sequenceLength + rightAns.sequenceLength);
-						return s;
-
-					} else {
-						if (leftAns.longestRange == leftAns.sequenceLength
-								&& rightAns.longestRange != rightAns.sequenceLength) {
-							SequenceRange s = new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
-									rightAns.matchingOnRight, longest,
-									leftAns.sequenceLength + rightAns.sequenceLength);
-							return s;
-						}
-						if (rightAns.longestRange == rightAns.sequenceLength
-								&& leftAns.longestRange != leftAns.sequenceLength) {
-							SequenceRange s = new SequenceRange(leftAns.matchingOnLeft,
-									rightAns.matchingOnRight + leftAns.matchingOnRight, longest,
-									leftAns.sequenceLength + rightAns.sequenceLength);
-							return s;
-						}
-						if (rightAns.longestRange == rightAns.sequenceLength
-								&& leftAns.longestRange == leftAns.sequenceLength) {
-							SequenceRange s = new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
-									rightAns.matchingOnRight + leftAns.matchingOnRight, longest,
-									leftAns.sequenceLength + rightAns.sequenceLength);
-							return s;
-						}
-						SequenceRange s = new SequenceRange(leftAns.matchingOnLeft, rightAns.matchingOnRight, longest,
-								leftAns.sequenceLength + rightAns.sequenceLength);
-						return s;
-					}
+					return combine(leftAns, rightAns);
 
 				}
 
@@ -126,6 +71,37 @@ public class LongestSequence {
 		return ForkJoinPool.commonPool().invoke(thd).longestRange;
 
 	}
+
+	private static SequenceRange combine(SequenceRange leftAns, SequenceRange rightAns) {
+
+		int longest = Math.max(rightAns.longestRange, leftAns.longestRange);
+		
+		if (leftAns.matchingOnRight + rightAns.matchingOnLeft > longest) {
+			
+			longest = leftAns.matchingOnRight + rightAns.matchingOnLeft;
+		}
+
+		if (leftAns.sequenceLength == leftAns.longestRange && rightAns.sequenceLength != rightAns.longestRange) {
+			return new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
+					rightAns.matchingOnRight, longest,
+					leftAns.sequenceLength + rightAns.sequenceLength);
+		}
+		if (leftAns.sequenceLength != leftAns.longestRange && rightAns.sequenceLength == rightAns.longestRange) {
+			return new SequenceRange(leftAns.matchingOnLeft ,
+					rightAns.matchingOnRight+ leftAns.matchingOnRight, longest,
+					leftAns.sequenceLength + rightAns.sequenceLength);
+		}
+		
+		if (leftAns.sequenceLength == leftAns.longestRange && rightAns.sequenceLength == rightAns.longestRange) {
+			return new SequenceRange(leftAns.matchingOnLeft + rightAns.matchingOnLeft,
+					rightAns.matchingOnRight + leftAns.matchingOnRight, longest,
+					leftAns.sequenceLength + rightAns.sequenceLength);
+		}
+		
+		return new SequenceRange(leftAns.matchingOnLeft, rightAns.matchingOnRight, longest,
+				leftAns.sequenceLength + rightAns.sequenceLength);
+	}
+
 
 	private static void usage() {
 		System.err.println("USAGE: LongestSequence <number> <array> <sequential cutoff>");
