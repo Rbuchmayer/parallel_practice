@@ -9,11 +9,10 @@ import cse332.exceptions.NotYetImplementedException;
 
 public class FilterEmpty {
 	static ForkJoinPool POOL = new ForkJoinPool();
-	public static int SUM = 0;
 
 	public static int[] filterEmpty(String[] arr) {
 		int[] bitset = mapToBitSet(arr);
-		
+
 		int[] bitsum = ParallelPrefixSum.parallelPrefixSum(bitset);
 		int[] result = mapToOutput(arr, bitsum);
 		return result;
@@ -70,55 +69,50 @@ public class FilterEmpty {
 
 	}
 
-	public static int[] mapToOutput(String[] input, int[] bitsum) {
+	public static int[] mapToOutput(final String[] input, int[] bitsum) {
 		class SumThread extends RecursiveTask<int[]> {
 			private static final long serialVersionUID = 1L;
 			int lo;
 			int hi;
 			String[] in;
 			int[] bitsum;
-			
+			int[] bitset = mapToBitSet(input);
 
-			public SumThread(int l, int h, String[] input, int[] bitsum) {
+			public SumThread(int l, int h, String[] input, int[] bitsum, int[] bitset) {
 				lo = l;
 				hi = h;
 				in = input;
 				this.bitsum = bitsum;
-				
+				this.bitset = bitset;
 			}
 
 			protected int[] compute() {
 
 				if (hi - lo <= 1) {
 
-					int[] output = new int[hi - lo];
+					int[] output;
+					if (bitset.length == 0) {
+						return new int[0];
+					}
 
-					int j = 0;
-					for (int i = lo; i < hi; i++) {
-						if (bitsum[i] == 0 || bitsum[i] <= SUM) {
-							return new int[0];
-						}
+					if (bitset[lo] == 1) {
+						output = new int[1];
+						output[0] = input[lo].length();
 
-						if(bitsum[i] > SUM) {
-							SUM = bitsum[i];
-							output[j] = in[i].length();
-							j++;
-						}
-						
-
+					} else {
+						output = new int[0];
 					}
 
 					return output;
-
 				}
 
 				else {
-					SumThread left = new SumThread(lo, (hi + lo) / 2, in, bitsum);
-					SumThread right = new SumThread((hi + lo) / 2, hi, in, bitsum);
+					SumThread left = new SumThread(lo, (hi + lo) / 2, in, bitsum, bitset);
+					SumThread right = new SumThread((hi + lo) / 2, hi, in, bitsum, bitset);
 					left.fork();
 					int[] rightAns = right.compute();
 					int[] leftAns = left.join();
-					
+
 					int[] out = new int[rightAns.length + leftAns.length];
 					for (int i = 0; i < leftAns.length; i++) {
 						out[i] = leftAns[i];
@@ -129,14 +123,15 @@ public class FilterEmpty {
 						j++;
 					}
 					return out;
+
 				}
 
 			}
 
 		}
-		SumThread thd = new SumThread(0, input.length, input, bitsum);
-		return ForkJoinPool.commonPool().invoke(thd);
 
+		SumThread thd = new SumThread(0, input.length, input, bitsum, mapToBitSet(input));
+		return ForkJoinPool.commonPool().invoke(thd);
 	}
 
 	private static void usage() {
