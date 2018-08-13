@@ -28,9 +28,9 @@ public class GetLeftMostIndex {
 
 					for (int i = lo; i < hi; i++) {
 						int k = 0;
-						while (k < needle.length && needle[k] == haystack[i + k]) {
+						while (k < needle.length && (i + k) < haystack.length && needle[k] == haystack[i + k]) {
 							if (k == needle.length - 1) {
-								return (i - lo);
+								return (i);
 							}
 							k++;
 						}
@@ -44,16 +44,20 @@ public class GetLeftMostIndex {
 					left.fork();
 					int rightAns = right.compute();
 					int leftAns = left.join();
-					if (rightAns != -1 && leftAns != -1) {
-						return Math.min(leftAns, rightAns);
+
+					if (leftAns == -1 && rightAns == -1) {
+						return -1;
 					}
-					if (rightAns == -1) {
-						return leftAns;
-					}
-					if (leftAns == -1) {
+					if (leftAns == -1 && rightAns != -1) {
 						return rightAns;
 					}
-					return -1;
+					if (leftAns != -1 && rightAns == -1) {
+						return leftAns;
+					}
+					if (leftAns + rightAns == needle.length) {
+						return leftAns;
+					}
+					return Math.min(leftAns, rightAns);
 				}
 			}
 		}
