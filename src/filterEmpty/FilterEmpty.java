@@ -76,39 +76,42 @@ public class FilterEmpty {
 			int hi;
 			String[] in;
 			int[] bitsum;
-			int[] bitset = mapToBitSet(input);
 
-			public SumThread(int l, int h, String[] input, int[] bitsum, int[] bitset) {
+			public SumThread(int l, int h, String[] input, int[] bitsum) {
 				lo = l;
 				hi = h;
 				in = input;
 				this.bitsum = bitsum;
-				this.bitset = bitset;
+
 			}
 
 			protected int[] compute() {
 
 				if (hi - lo <= 1) {
 
-					int[] output;
-					if (bitset.length == 0) {
+					if (bitsum.length == 0) {
 						return new int[0];
 					}
-
-					if (bitset[lo] == 1) {
-						output = new int[1];
-						output[0] = input[lo].length();
-
-					} else {
-						output = new int[0];
+					if (lo < 1) {
+						if (bitsum[lo] == 1) {
+							int[] output = new int[1];
+							output[0] = input[lo].length();
+							return output;
+						}
+						return new int[0];
 					}
+					if (bitsum[lo] > bitsum[lo - 1]) {
+						int[] output = new int[1];
+						output[0] = input[lo].length();
+						return output;
+					}
+					return new int[0];
 
-					return output;
 				}
 
 				else {
-					SumThread left = new SumThread(lo, (hi + lo) / 2, in, bitsum, bitset);
-					SumThread right = new SumThread((hi + lo) / 2, hi, in, bitsum, bitset);
+					SumThread left = new SumThread(lo, (hi + lo) / 2, in, bitsum);
+					SumThread right = new SumThread((hi + lo) / 2, hi, in, bitsum);
 					left.fork();
 					int[] rightAns = right.compute();
 					int[] leftAns = left.join();
@@ -124,13 +127,16 @@ public class FilterEmpty {
 					}
 					return out;
 
+
+
+
 				}
 
 			}
 
 		}
 
-		SumThread thd = new SumThread(0, input.length, input, bitsum, mapToBitSet(input));
+		SumThread thd = new SumThread(0, input.length, input, bitsum);
 		return ForkJoinPool.commonPool().invoke(thd);
 	}
 
